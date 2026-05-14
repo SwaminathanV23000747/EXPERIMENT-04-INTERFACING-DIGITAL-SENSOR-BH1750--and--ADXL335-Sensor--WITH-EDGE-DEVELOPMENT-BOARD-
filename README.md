@@ -228,13 +228,16 @@ while True:
 
 ### OUPUT  
 
-# FIGURE -04 Console
+# FIGURE -04 Kit Image 
+<img width="960" height="1280" alt="WhatsApp Image 2026-05-14 at 7 23 34 AM" src="https://github.com/user-attachments/assets/2248dd2a-7933-4365-9c49-cd7c853d6a0a" />
+
+# FIGURE -05 Console
 <img width="583" height="422" alt="Screenshot 2026-05-13 115347" src="https://github.com/user-attachments/assets/60274f26-e4dc-4f03-a8b4-7e11c3e51a71" />
 
-#  FIGURE -05 
+#  FIGURE -06 
 <img width="1907" height="968" alt="Screenshot 2026-05-13 115541" src="https://github.com/user-attachments/assets/216a9f87-e120-4112-b098-c251e7b4dfa0" />
 
-# FIGURE -06 
+# FIGURE -07
 <img width="1915" height="971" alt="Screenshot 2026-05-13 115440" src="https://github.com/user-attachments/assets/ef9fa229-e8c8-42cc-9711-acbeab289c0c" />
 
 Experiment 4B
@@ -251,11 +254,11 @@ Experiment 4B
 
 ### OUPUT  
 
-# FIGURE -07 ADD TITILE HERE 
+# FIGURE -08 ADD TITILE HERE 
 
-#  FIGURE -08 ADD TITILE HERE 
+#  FIGURE -09 ADD TITILE HERE 
 
-# FIGURE -09 ADD TITLE HERE 
+# FIGURE -10 ADD TITLE HERE 
 
 
 
