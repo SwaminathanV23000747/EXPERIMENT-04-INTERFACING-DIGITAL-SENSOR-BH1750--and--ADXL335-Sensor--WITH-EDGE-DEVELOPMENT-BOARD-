@@ -243,7 +243,262 @@ while True:
 Experiment 4B
 ## PROGRAM (Python)
 ```
+from urllib import request
+import json
+import time
+import smbus2
+import math
+import ssl
 
+# =====================================================
+# SSL FIX
+# =====================================================
+
+ssl._create_default_https_context = ssl._create_unverified_context
+
+# =====================================================
+# MPU9250 / MPU6500 CONFIGURATION
+# =====================================================
+
+# Change to 0x69 if your sensor address is 69
+MPU_ADDR = 0x68
+
+# MPU Registers
+PWR_MGMT_1 = 0x6B
+
+ACCEL_XOUT_H = 0x3B
+ACCEL_YOUT_H = 0x3D
+ACCEL_ZOUT_H = 0x3F
+
+GYRO_XOUT_H = 0x43
+GYRO_YOUT_H = 0x45
+GYRO_ZOUT_H = 0x47
+
+# =====================================================
+# I2C SETUP
+# =====================================================
+
+bus = smbus2.SMBus(1)
+
+# Wake up MPU Sensor
+try:
+
+    bus.write_byte_data(
+        MPU_ADDR,
+        PWR_MGMT_1,
+        0
+    )
+
+    print("======================================")
+    print("MPU Sensor Initialized Successfully")
+    print("======================================")
+
+except Exception as e:
+
+    print("======================================")
+    print("MPU Sensor Connection Failed")
+    print("Check:")
+    print("1. Wiring")
+    print("2. I2C Enabled")
+    print("3. Sensor Address")
+    print("4. Power Supply")
+    print("--------------------------------------")
+    print("Error :", e)
+    print("======================================")
+
+    exit()
+
+# =====================================================
+# THINGZMATE CLOUD CONFIGURATION
+# =====================================================
+
+API_KEY = "922f7eb938c5c86652e37e60b90c6e22"
+
+URL = "https://iot.saveetha.in:4433/api/v1/device-types/123edge/devices/keerthi/uplink"
+
+# =====================================================
+# READ RAW SENSOR DATA
+# =====================================================
+
+def read_raw_data(addr):
+
+    high = bus.read_byte_data(
+        MPU_ADDR,
+        addr
+    )
+
+    low = bus.read_byte_data(
+        MPU_ADDR,
+        addr + 1
+    )
+
+    value = ((high << 8) | low)
+
+    if value > 32768:
+        value = value - 65536
+
+    return value
+
+# =====================================================
+# START MESSAGE
+# =====================================================
+
+print("======================================")
+print("MPU9250 / MPU6500 + ThingzMate Started")
+print("======================================")
+
+time.sleep(2)
+
+# =====================================================
+# MAIN LOOP
+# =====================================================
+
+while True:
+
+    try:
+
+        # ==========================================
+        # READ ACCELEROMETER
+        # ==========================================
+
+        acc_x = read_raw_data(ACCEL_XOUT_H)
+        acc_y = read_raw_data(ACCEL_YOUT_H)
+        acc_z = read_raw_data(ACCEL_ZOUT_H)
+
+        Ax = acc_x / 16384.0
+        Ay = acc_y / 16384.0
+        Az = acc_z / 16384.0
+
+        # ==========================================
+        # READ GYROSCOPE
+        # ==========================================
+
+        gyro_x = read_raw_data(GYRO_XOUT_H)
+        gyro_y = read_raw_data(GYRO_YOUT_H)
+        gyro_z = read_raw_data(GYRO_ZOUT_H)
+
+        Gx = gyro_x / 131.0
+        Gy = gyro_y / 131.0
+        Gz = gyro_z / 131.0
+
+        # ==========================================
+        # MOTION STATUS
+        # ==========================================
+
+        motion = math.sqrt(
+            (Ax * Ax) +
+            (Ay * Ay) +
+            (Az * Az)
+        )
+
+        if motion > 1.2:
+
+            status = "MOVING"
+
+        else:
+
+            status = "STABLE"
+
+        # ==========================================
+        # DISPLAY VALUES
+        # ==========================================
+
+        print("======================================")
+
+        print("Accelerometer")
+
+        print("Ax :", round(Ax, 2))
+        print("Ay :", round(Ay, 2))
+        print("Az :", round(Az, 2))
+
+        print("--------------------------------------")
+
+        print("Gyroscope")
+
+        print("Gx :", round(Gx, 2))
+        print("Gy :", round(Gy, 2))
+        print("Gz :", round(Gz, 2))
+
+        print("--------------------------------------")
+
+        print("Status :", status)
+
+        # ==========================================
+        # JSON PAYLOAD
+        # ==========================================
+
+        payload = {
+
+            "Ax": round(Ax, 2),
+            "Ay": round(Ay, 2),
+            "Az": round(Az, 2),
+
+            "Gx": round(Gx, 2),
+            "Gy": round(Gy, 2),
+            "Gz": round(Gz, 2),
+
+            "status": status
+        }
+
+        data = json.dumps(payload).encode()
+
+        print("--------------------------------------")
+        print("Payload :", payload)
+
+        # ==========================================
+        # HTTP REQUEST
+        # ==========================================
+
+        req = request.Request(
+            URL,
+            method="POST"
+        )
+
+        req.add_header(
+            "Content-Type",
+            "application/json"
+        )
+
+        req.add_header(
+            "Authorization",
+            "Bearer " + API_KEY
+        )
+
+        # ==========================================
+        # SEND DATA TO THINGZMATE
+        # ==========================================
+
+        response = request.urlopen(
+            req,
+            data=data,
+            timeout=10
+        )
+
+        # ==========================================
+        # CLOUD RESPONSE
+        # ==========================================
+
+        print("--------------------------------------")
+        print("Cloud Upload Success")
+        print("Response :", response.read().decode())
+
+        time.sleep(5)
+
+    except KeyboardInterrupt:
+
+        print("======================================")
+        print("Program Stopped")
+        print("======================================")
+
+        break
+
+    except Exception as e:
+
+        print("======================================")
+        print("Runtime Error :", e)
+        print("======================================")
+
+        time.sleep(2)
 
  
 
@@ -254,12 +509,16 @@ Experiment 4B
 
 ### OUPUT  
 
-# FIGURE -08 ADD TITILE HERE 
+# FIGURE -08 Kit Image 
+<img width="1600" height="1200" alt="WhatsApp Image 2026-05-19 at 1 49 04 PM" src="https://github.com/user-attachments/assets/29b0c6cb-5a42-4839-b53c-8554885db86f" />
 
-#  FIGURE -09 ADD TITILE HERE 
+#  FIGURE -09 Output
+<img width="596" height="682" alt="Screenshot 2026-05-19 135441" src="https://github.com/user-attachments/assets/0e3d38ca-9090-403f-9781-bf7a228f895b" />
+<img width="1912" height="1020" alt="Screenshot 2026-05-19 135825" src="https://github.com/user-attachments/assets/03411ee2-132f-462d-818a-d8a17425c508" />
 
-# FIGURE -10 ADD TITLE HERE 
+<img width="1901" height="1017" alt="Screenshot 2026-05-19 135411" src="https://github.com/user-attachments/assets/17087905-a79d-4cf1-91ae-b486aa607c89" />
 
+<img width="1905" height="1020" alt="Screenshot 2026-05-19 135639" src="https://github.com/user-attachments/assets/be145e23-96aa-4fa4-9e87-3f1ebf48391b" />
 
 
 
